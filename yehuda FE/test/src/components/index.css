@@ -1,0 +1,43 @@
+.listHeading {
+  width: 85px;
+  text-align: start;
+}
+
+.heading {
+  text-align: center;
+}
+
+.formMainContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formContainer button {
+  width: 60px !important;
+  margin-top: 20px !important;
+}
+
+.container {
+  margin: 12px 0px;
+  display: "flex";
+  justify-content: "space-between";
+  width: "300px";
+}
+
+.buttonContainer {
+  width: 71px !important;
+  text-transform: capitalize !important;
+  margin: 0px 10px !important;
+}
+
+.titleHeading {
+  display: flex;
+  justify-content: space-between;
+}
