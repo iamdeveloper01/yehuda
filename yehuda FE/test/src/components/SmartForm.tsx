@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useEffect, useState } from "react";
 import axios from "axios";
+import queryString from 'query-string';
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 
@@ -8,67 +9,41 @@ interface SmartFormProps {
   topic?: string;
 }
 
-type values = {
-  name: string;
-  location: string;
-  email: string;
-  number: number;
-  float_number: number;
-  id: number;
-  enum: string;
-  created_at: string;
-  edited_at: string;
-};
-
-type stateProps = {
-  type: string;
-  data: values;
-};
-
 export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
   const [schema, setSchema] = useState<any>({});
   const [formData, setFormData] = useState<any>({});
 
   const navigate = useNavigate();
-  const { state }: stateProps = useLocation();
+  const state = useLocation();
+  const {formType, rawData} = queryString.parse(state.search);
 
-  const fetchData = async () => {
+useEffect(()=>{
+if(rawData?.length && formType === 'update'){
+  setFormData(JSON.parse(rawData as string))
+}
+if(formType){
+  fetchSchema(formType as 'create'|'update')
+}
+
+},[rawData, formType])
+
+  
+  const fetchSchema = async (type: 'create'|'update') => {
     try {
       const response = await axios.get(
-        `http://localhost/machine/get/${state.data.id}/`
-      );
-
-      setFormData(response?.data);
-    } catch (error) {
-      console.error("Error fetching form schema:", error);
-    }
-  };
-
-  const fetchSchema = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost/machine/schema/${
-          state?.type === "create" ? "create" : "update"
-        }`
-      );
+        `http://localhost:8000/machine/schema/${type}`
+      );      
       setSchema(JSON.parse(response.data as unknown as string));
 
-      setFormData(response?.data);
+    if(type==='create')  setFormData(response?.data);
     } catch (error) {
       console.error("Error fetching form schema:", error);
     }
   };
-
-  useEffect(() => {
-    fetchSchema();
-    if (state?.type === "edit") {
-      void fetchData();
-    }
-  }, []);
 
   const handleCreate = async (payload: any) => {
     try {
-      await axios.post("http://localhost/machine/create", payload);
+      await axios.post("http://localhost:8000/machine/create", payload);
       alert("Created successfully!");
       navigate(-1);
       setFormData({});
@@ -80,7 +55,7 @@ export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
   const handleUpdate = async (payload: any) => {
     try {
       await axios.put(
-        `http://localhost/machine/update/${state.data.id}/`,
+        `http://localhost:8000/machine/update/${formData.id}/`,
         payload
       );
       alert("Updated successfully!");
@@ -91,18 +66,18 @@ export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    const obj = {};
+    const obj: any = {};
 
-    [...e.target].forEach((i) => {
+    [...e.target].forEach((i: any) => {
       if (i.name && i.value) {
         obj[i.name] = i.value;
       }
     });
 
-    if (state.type === "create") {
+    if (formType === "create") {
       void handleCreate(obj);
     } else {
       void handleUpdate(obj);
@@ -112,25 +87,24 @@ export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
   return (
     <div className="formMainContainer">
       <h3>
-        {state?.type === "create" ? "Create" : "Edit"} {topic}
+        {formType} {topic}
       </h3>
       <form onSubmit={handleSubmit}>
         {schema?.properties &&
           Object.entries(schema?.properties).map(
             ([fieldName, fieldData]: [string, any]) => {
+
               const {
                 type,
                 readOnly,
                 default: defaultValue,
                 enum: enumOptions,
               } = fieldData;
-              let value = defaultValue;
-              if (state.type === "edit") {
-                value = formData[fieldName];
-              }
+              let value = formType === "update"?formData[fieldName]:defaultValue;
+              
               const isRequired =
                 schema.required && schema.required.includes(fieldName);
-              const fieldId = `${state?.type}-${fieldName}`;
+              const fieldId = `${formType}-${fieldName}`;
 
               return (
                 <div
@@ -183,11 +157,12 @@ export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
           )}
         <div style={{ display: "flex", justifyContent: "center" }}>
           <Button
+            type="submit"
             className="buttonContainer"
             sx={{ height: "25px" }}
             variant="contained"
           >
-            {state?.type === "create" ? "Create" : "Update"}
+            {formType}
           </Button>
         </div>
       </form>

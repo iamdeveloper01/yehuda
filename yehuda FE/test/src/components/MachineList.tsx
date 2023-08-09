@@ -9,7 +9,8 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
-
+import { useLocation } from "react-router-dom";
+import queryString from 'query-string';
 import "./index.css";
 
 type values = {
@@ -40,6 +41,8 @@ export const MachineList = () => {
   const navigate = useNavigate();
 
   const [machines, setMachines] = useState<Mvalues>([]);
+  const  state  = useLocation();
+  const {type='machines'} = queryString.parse(state.search);
 
   useEffect(() => {
     void fetchMachines();
@@ -48,7 +51,7 @@ export const MachineList = () => {
   const fetchMachines = async () => {
     try {
       const response: AxiosResponse = await axios.get(
-        "http://localhost/machines/"
+        `http://localhost:8000/${type}/`
       );
       setMachines(response?.data as Mvalues);
     } catch (error) {
@@ -57,7 +60,7 @@ export const MachineList = () => {
   };
 
   const handleNavigate = (type: string, data?: values) => {
-    navigate("/form", { state: { type: type, data: data } });
+    navigate(`/form/?formType=${type}&rawData=${type=="update"?JSON.stringify(data): "None"}`)
   };
 
   return (
@@ -77,7 +80,7 @@ export const MachineList = () => {
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {machines?.length &&
+              {machines?.length ?
                 Object.keys(machines[0])
                   .sort((a, b) => a.length - b.length)
                   .map((key, index) => {
@@ -89,7 +92,7 @@ export const MachineList = () => {
                         {key.replace("_", " ")}
                       </TableCell>
                     );
-                  })}
+                  }):<></>}
               <TableCell sx={{ "text-transform": "capitalize" }}>
                 Action
               </TableCell>
@@ -116,7 +119,7 @@ export const MachineList = () => {
                   <TableCell>
                     <Button
                       className="buttonContainer"
-                      onClick={() => handleNavigate("edit", machine)}
+                      onClick={() => handleNavigate("update", machine)}
                       variant="contained"
                     >
                       Edit
@@ -129,5 +132,5 @@ export const MachineList = () => {
         </Table>
       </TableContainer>
     </div>
-  );
+  )
 };
