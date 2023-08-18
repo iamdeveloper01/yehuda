@@ -19,7 +19,7 @@ def get_db():
         db.close()
 
 
-@router.post("/machine/create/", response_model=MachineRead, summary="Create a new machine")
+@router.post("/machines/create/", response_model=MachineRead, summary="Create a new machine")
 def create_machine(machine: MachineCreate, db: Session = Depends(get_db)):
     db_machine = Machine(**machine.dict())
     db.add(db_machine)
@@ -28,7 +28,7 @@ def create_machine(machine: MachineCreate, db: Session = Depends(get_db)):
     return db_machine  
 
 
-@router.put("/machine/update/{machine_id}/", response_model=str, summary= "Update a machine", description="The id of the machine to update")
+@router.put("/machines/update/{machine_id}/", response_model=str, summary= "Update a machine", description="The id of the machine to update")
 def update_machine(
     machine_id: int, machine: MachineUpdate, db: Session = Depends(get_db)
 ):
@@ -43,7 +43,7 @@ def update_machine(
         return  "Machine not found"
 
 
-@router.get("/machine/get/{machine_id}/", response_model=MachineRead, summary= "get a machine")
+@router.get("/machines/get/{machine_id}/", response_model=MachineRead, summary= "get a machine")
 def read_machine(machine_id: int, db: Session = Depends(get_db)):
     db_machine = db.query(Machine).filter(Machine.id == machine_id).first()
     if db_machine:
@@ -87,6 +87,6 @@ def get_json_schema(method: str):
         media_type="application/json"
     )
 
-@router.get("/machine/schema/{method}", response_description="Get the JSON schema for create/update, see below")
+@router.get("/machines/schema/{method}", response_description="Get the JSON schema for create/update, see below")
 def get_json_schema_route(method: MachineSchema):
     return JSONResponse(get_json_schema(method), media_type="application/json")

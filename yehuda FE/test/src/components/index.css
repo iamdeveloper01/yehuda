@@ -1,3 +1,9 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .listHeading {
   width: 85px;
   text-align: start;
@@ -40,4 +46,9 @@
 .titleHeading {
   display: flex;
   justify-content: space-between;
+  margin-right: 1.2rem
+}
+
+.noDataText{
+  text-align: center;
 }

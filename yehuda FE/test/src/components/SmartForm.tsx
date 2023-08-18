@@ -5,33 +5,29 @@ import queryString from 'query-string';
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 
-interface SmartFormProps {
-  topic?: string;
-}
-
-export const SmartForm = ({ topic = "Machine" }: SmartFormProps) => {
+const SmartForm = () => {
   const [schema, setSchema] = useState<any>({});
   const [formData, setFormData] = useState<any>({});
 
   const navigate = useNavigate();
   const state = useLocation();
-  const {formType, rawData} = queryString.parse(state.search);
+  const {formType, rawData, topic} = queryString.parse(state.search);
+  
+  useEffect(()=>{
+  if(rawData?.length && formType === 'update'){
+    setFormData(JSON.parse(rawData as string))
+  }
+  if(formType){
+    fetchSchema(formType as 'create'|'update')
+  }
 
-useEffect(()=>{
-if(rawData?.length && formType === 'update'){
-  setFormData(JSON.parse(rawData as string))
-}
-if(formType){
-  fetchSchema(formType as 'create'|'update')
-}
-
-},[rawData, formType])
+  },[rawData, formType])
 
   
   const fetchSchema = async (type: 'create'|'update') => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/machine/schema/${type}`
+        `http://localhost:8000/${topic}/schema/${type}`
       );      
       setSchema(JSON.parse(response.data as unknown as string));
 
@@ -43,7 +39,7 @@ if(formType){
 
   const handleCreate = async (payload: any) => {
     try {
-      await axios.post("http://localhost:8000/machine/create", payload);
+      await axios.post(`http://localhost:8000/${topic}/create/`, payload);
       alert("Created successfully!");
       navigate(-1);
       setFormData({});
@@ -55,7 +51,7 @@ if(formType){
   const handleUpdate = async (payload: any) => {
     try {
       await axios.put(
-        `http://localhost:8000/machine/update/${formData.id}/`,
+        `http://localhost:8000/${topic}/update/${formData.id}/`,
         payload
       );
       alert("Updated successfully!");
@@ -87,7 +83,7 @@ if(formType){
   return (
     <div className="formMainContainer">
       <h3>
-        {formType} {topic}
+        {formType?.charAt(0).toUpperCase() + formType?.slice(1)} {topic?.charAt(0).toUpperCase() + topic?.slice(1)}
       </h3>
       <form onSubmit={handleSubmit}>
         {schema?.properties &&
@@ -169,3 +165,4 @@ if(formType){
     </div>
   );
 };
+export default SmartForm;

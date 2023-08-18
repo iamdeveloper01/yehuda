@@ -10,7 +10,6 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import { useLocation } from "react-router-dom";
-import queryString from 'query-string';
 import "./index.css";
 
 type values = {
@@ -37,36 +36,39 @@ type Mvalues = {
   edited_at: string;
 }[];
 
-export const MachineList = () => {
+const Home = () => {
   const navigate = useNavigate();
 
-  const [machines, setMachines] = useState<Mvalues>([]);
-  const  state  = useLocation();
-  const {type='machines'} = queryString.parse(state.search);
+  const [data, setData] = useState<Mvalues>([]);
+  const location  = useLocation();
+  const topic =  location.search.replace("?" , "");
 
   useEffect(() => {
-    void fetchMachines();
+    void fetchData();
   }, []);
 
-  const fetchMachines = async () => {
+  const fetchData = async () => {
     try {
       const response: AxiosResponse = await axios.get(
-        `http://localhost:8000/${type}/`
+        `http://localhost:8000/${topic}/`
       );
-      setMachines(response?.data as Mvalues);
+      setData(response?.data as Mvalues);
     } catch (error) {
-      console.error("Error fetching machines:", error);
+      console.error("Error fetching data:", error);
     }
   };
 
   const handleNavigate = (type: string, data?: values) => {
-    navigate(`/form/?formType=${type}&rawData=${type=="update"?JSON.stringify(data): "None"}`)
+    navigate(`/form/?formType=${type}&rawData=${type=="update"?JSON.stringify(data): "None"}&topic=${topic}`)
   };
 
   return (
-    <div>
+    <>
+    {data.length>0?
+    <div className="">
+      <div className="noDataText"><h2>{topic?.charAt(0).toUpperCase() + topic?.slice(1)}</h2></div> 
       <div className="titleHeading">
-        <h3 className="heading">Machine List</h3>
+        <h3 className="heading">{topic?.charAt(0).toUpperCase() + topic?.slice(1)} {topic && "List"}</h3>
         <Button
           className="buttonContainer"
           sx={{ height: "35px" }}
@@ -80,8 +82,8 @@ export const MachineList = () => {
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {machines?.length ?
-                Object.keys(machines[0])
+              {data?.length ?
+                Object.keys(data[0])
                   .sort((a, b) => a.length - b.length)
                   .map((key, index) => {
                     return (
@@ -99,19 +101,19 @@ export const MachineList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {machines?.map((machine: values) => {
+            {data?.map((element: values) => {
               return (
                 <TableRow
-                  key={machine?.id}
+                  key={element?.id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <>
-                    {Object.keys(machine)
+                    {Object.keys(element)
                       ?.sort((a, b) => a.length - b.length)
                       .map((value: string) => {
                         return (
                           <TableCell>
-                            {machine[value as keyof values]}
+                            {element[value as keyof values]}
                           </TableCell>
                         );
                       })}
@@ -119,7 +121,7 @@ export const MachineList = () => {
                   <TableCell>
                     <Button
                       className="buttonContainer"
-                      onClick={() => handleNavigate("update", machine)}
+                      onClick={() => handleNavigate("update", element)}
                       variant="contained"
                     >
                       Edit
@@ -132,5 +134,11 @@ export const MachineList = () => {
         </Table>
       </TableContainer>
     </div>
+    :
+    <div className="noDataText"><h3>You have no data</h3></div>
+    }
+    </>
   )
 };
+
+export default Home;
