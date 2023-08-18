@@ -36,7 +36,7 @@ type Mvalues = {
   edited_at: string;
 }[];
 
-const Home = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
 
   const [data, setData] = useState<Mvalues>([]);
@@ -141,4 +141,4 @@ const Home = () => {
   )
 };
 
-export default Home;
+export default Dashboard;
